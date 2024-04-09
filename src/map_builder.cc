@@ -31,9 +31,10 @@ MapBuilder::MapBuilder(Configs& configs): _shutdown(false), _init(false), _track
   _ros_publisher = std::shared_ptr<RosPublisher>(new RosPublisher(configs.ros_publisher_config));
   _map = std::shared_ptr<Map>(new Map(_configs.backend_optimization_config, _camera, _ros_publisher));
 
-  _feature_thread = std::thread(boost::bind(&MapBuilder::ExtractFeatureThread, this));
-  _tracking_thread = std::thread(boost::bind(&MapBuilder::TrackingThread, this));
+  _feature_thread = std::thread(&MapBuilder::ExtractFeatureThread, this);
+  _tracking_thread = std::thread(&MapBuilder::TrackingThread, this);
 }
+
 
 void MapBuilder::AddInput(InputDataPtr data){
   cv::Mat image_left_rect, image_right_rect;
@@ -669,6 +670,10 @@ void MapBuilder::SaveMap(const std::string& map_root){
 
 void MapBuilder::ShutDown(){
   _shutdown = true;
-  _feature_thread.join();
-  _tracking_thread.join();
+  if (_feature_thread.joinable()) {
+    _feature_thread.join();
+  }
+  if (_tracking_thread.joinable()) {
+    _tracking_thread.join();
+  }
 }

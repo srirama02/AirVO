@@ -7,13 +7,13 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Core>
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <cv_bridge/cv_bridge.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <nav_msgs/Path.h>
-#include <sensor_msgs/PointCloud.h>
-#include <visualization_msgs/Marker.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 
 #include "utils.h"
 #include "read_configs.h"
@@ -70,10 +70,7 @@ struct MapLineMessage{
 typedef std::shared_ptr<MapLineMessage> MapLineMessagePtr;
 typedef std::shared_ptr<const MapLineMessage> MapLineMessageConstPtr;
 
-
-double GetCurrentTime();
-
-class RosPublisher{
+class RosPublisher : public rclcpp::Node {
 public:
   RosPublisher(const RosPublisherConfig& ros_publisher_config);
 
@@ -83,38 +80,35 @@ public:
   void PublishMap(MapMessagePtr map_message);
   void PublishMapLine(MapLineMessagePtr mapline_message);
 
-  void ShutDown();
-
 private:
   RosPublisherConfig _config;
-  ros::NodeHandle nh;
 
   // for publishing features
-  ros::Publisher _ros_feature_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr _ros_feature_pub;
   ThreadPublisher<FeatureMessgae> _feature_publisher;
 
   // for publishing frame
-  ros::Publisher _ros_frame_pose_pub;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr _ros_frame_pose_pub;
   ThreadPublisher<FramePoseMessage> _frame_pose_publisher;
 
   // for publishing keyframes
-  ros::Publisher _ros_keyframe_pub;
-  ros::Publisher _ros_path_pub;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr _ros_keyframe_pub;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr _ros_path_pub;
   std::map<int, int> _keyframe_id_to_index;
-  geometry_msgs::PoseArray  _ros_keyframe_array;
-  nav_msgs::Path _ros_path;
+  geometry_msgs::msg::PoseArray _ros_keyframe_array;
+  nav_msgs::msg::Path _ros_path;
   ThreadPublisher<KeyframeMessage> _keyframe_publisher;
 
   // for publishing mappoints
-  ros::Publisher _ros_map_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr _ros_map_pub;
   std::unordered_map<int, int> _mappoint_id_to_index;
-  sensor_msgs::PointCloud _ros_mappoints;
+  sensor_msgs::msg::PointCloud _ros_mappoints;
   ThreadPublisher<MapMessage> _map_publisher;
 
   // for publishing maplines
-  ros::Publisher _ros_mapline_pub;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr _ros_mapline_pub;
   std::unordered_map<int, int> _mapline_id_to_index;
-  visualization_msgs::Marker _ros_maplines;
+  visualization_msgs::msg::Marker _ros_maplines;
   ThreadPublisher<MapLineMessage> _mapline_publisher;
 };
 typedef std::shared_ptr<RosPublisher> RosPublisherPtr;
