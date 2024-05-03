@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(air_vo)
 
+message(STATUS "Found G2O_CORE_LIBRARY")
+message(STATUS "Found G2O_SOLVER_EIGEN")
+
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -18,6 +21,8 @@ add_definitions(-w)
 # Add TensorRTBuffer subdirectory
 add_subdirectory(${PROJECT_SOURCE_DIR}/Thirdparty/TensorRTBuffer)
 
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 # Find required packages
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -27,6 +32,7 @@ find_package(image_transport REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(OpenCV 4.2 REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(CUDA REQUIRED)
@@ -35,6 +41,9 @@ find_package(Boost REQUIRED)
 find_package(G2O REQUIRED)
 find_package(Gflags REQUIRED)
 find_package(Glog REQUIRED)
+
+
+message("cvbridge dir: ${cv_bridge_INCLUDE_DIRS}")
 
 # Include directories
 include_directories(
@@ -50,13 +59,18 @@ include_directories(
   ${GLOG_INCLUDE_DIRS}
   # Include ROS 2 headers
   ${rclcpp_INCLUDE_DIRS}
+  ${rcl_interfaces_INCLUDE_DIRS}
   ${cv_bridge_INCLUDE_DIRS}
   ${geometry_msgs_INCLUDE_DIRS}
   ${image_transport_INCLUDE_DIRS}
   ${nav_msgs_INCLUDE_DIRS}
   ${std_msgs_INCLUDE_DIRS}
   ${sensor_msgs_INCLUDE_DIRS}
+  ${visualization_msgs_INCLUDE_DIRS}
+  /opt/ros/humble/include/cv_bridge/
 )
+
+message("cvbridge dir: ${cv_bridge_INCLUDE_DIRS}") 
 
 # Declare a C++ library
 add_library(${PROJECT_NAME}_lib SHARED
@@ -79,6 +93,10 @@ add_library(${PROJECT_NAME}_lib SHARED
   src/map_builder.cc
   src/timer.cc
 )
+
+message("Found G2O_CORE_LIBRARY: ${G2O_LIBRARIES}")
+# message(STATUS "Found G2O_SOLVER_EIGEN: ${G2O_SOLVER_EIGEN}")
+
 
 # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_lib
@@ -104,6 +122,7 @@ ament_target_dependencies(${PROJECT_NAME}
   nav_msgs
   std_msgs
   sensor_msgs
+  visualization_msgs
 )
 target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_lib)
 
@@ -118,6 +137,7 @@ ament_target_dependencies(${PROJECT_NAME}_ros
   sensor_msgs
 )
 target_link_libraries(${PROJECT_NAME}_ros ${PROJECT_NAME}_lib)
+message("line 130 ----")
 
 # Install targets
 install(TARGETS

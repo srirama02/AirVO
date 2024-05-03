@@ -1,5 +1,8 @@
 # Find the header files
 
+message(STATUS "Found G2O_CORE_LIBRARY: ${G2O_CORE_LIBRARY}")
+
+
 find_path(G2O_INCLUDE_DIR g2o/core/base_vertex.h
   ${G2O_ROOT}/include
   $ENV{G2O_ROOT}/include
